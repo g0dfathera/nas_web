@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>NAS File Explorer</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: #f3f3f3;
+    color: #000;
+    user-select: none;
+  }
+  .container {
+    max-width: 980px;
+    margin: 30px auto;
+    background-color: #fff;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 20px;
+  }
+  h2 {
+    font-weight: 600;
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  .nav {
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+  .nav a {
+    color: #0063B1;
+    text-decoration: none;
+  }
+  .nav a:hover {
+    text-decoration: underline;
+  }
+  .search-bar {
+    margin-bottom: 15px;
+  }
+  .search-bar input[type="text"] {
+    width: 300px;
+    padding: 6px 8px;
+    font-size: 14px;
+    border: 1px solid #a6a6a6;
+    border-radius: 2px;
+    outline-offset: 0;
+  }
+  .search-bar button {
+    padding: 6px 14px;
+    font-size: 14px;
+    background-color: #0078d7;
+    border: none;
+    color: white;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .search-bar button:hover {
+    background-color: #005a9e;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+    table-layout: fixed;
+  }
+  thead {
+    background-color: #f3f3f3;
+    border-bottom: 1px solid #ccc;
+  }
+  th, td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  th {
+    cursor: pointer;
+    user-select: none;
+    color: #444;
+    font-weight: 600;
+  }
+  th.sort-asc::after {
+    content: " ▲";
+    font-size: 10px;
+  }
+  th.sort-desc::after {
+    content: " ▼";
+    font-size: 10px;
+  }
+  tbody tr:hover {
+    background-color: #cde6ff;
+  }
+  a.file-link {
+    color: #000;
+    text-decoration: none;
+  }
+  a.file-link:hover {
+    text-decoration: underline;
+  }
+td.actions {
+  white-space: nowrap;
+  text-align: right;
+  min-width: 160px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+form.rename-form,
+form.delete-form {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+input.rename-input {
+  width: 100px;
+  font-size: 14px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  margin-right: 4px;
+}
+
+button.rename-btn,
+button.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+  padding: 0;
+}
+
+button.rename-btn:hover {
+  color: #0078d7;
+}
+
+button.delete-btn {
+  color: #d13438;
+}
+
+button.delete-btn:hover {
+  color: #a80000;
+}
+  .icon {
+    vertical-align: middle;
+    margin-right: 6px;
+    width: 18px;
+    height: 18px;
+    fill: #0078d7;
+  }
+  .icon.file {
+    fill: #666;
+  }
+  .upload-area {
+    border: 2px dashed #aaa;
+    border-radius: 4px;
+    padding: 25px;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .upload-area.dragover {
+    background-color: #d0e7ff;
+    border-color: #0078d7;
+    color: #0078d7;
+  }
+  input[type="file"] {
+    display: none;
+  }
+  form.folder-form {
+    margin-top: 12px;
+    display: flex;
+    max-width: 300px;
+    gap: 8px;
+  }
+  form.folder-form input[type="text"] {
+    flex-grow: 1;
+    padding: 6px 8px;
+    font-size: 14px;
+    border: 1px solid #a6a6a6;
+    border-radius: 2px;
+  }
+  form.folder-form button {
+    padding: 6px 14px;
+    background-color: #0078d7;
+    border: none;
+    color: white;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  form.folder-form button:hover {
+    background-color: #005a9e;
+  }
+  .pagination {
+    margin-top: 12px;
+    text-align: center;
+  }
+  .pagination button {
+    padding: 5px 12px;
+    margin: 0 4px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .pagination button:hover {
+    background-color: #0078d7;
+    color: white;
+    border-color: #0078d7;
+  }
+  .pagination span {
+    margin: 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .flash {
+    background-color: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffeeba;
+    padding: 10px 15px;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+  }
+  img.thumb {
+    vertical-align: middle;
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+    border: 1px solid #ccc;
+    margin-right: 6px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>NAS File Explorer</h2>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash">
+      {% for message in messages %}
+        <div>{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}
+
+  <div class="nav">
+    <div>Path: /{{ current_path }}</div>
+    {% if current_path %}
+      <div><a href="{{ url_for('index', req_path=parent_path, search=search) }}">← Go Up</a></div>
+    {% endif %}
+  </div>
+
+  <div class="search-bar">
+    <form method="get" action="{{ url_for('index', req_path=current_path) }}">
+      <input type="text" name="search" placeholder="Search files and folders" value="{{ search|default('') }}">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  <table id="fileTable">
+    <thead>
+      <tr>
+        <th data-sort="name">Name</th>
+        <th data-sort="mtime">Date Modified</th>
+        <th data-sort="ext">Type</th>
+        <th data-sort="size">Size</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+      {% set file_path = current_path ~ '/' ~ file.name if current_path else file.name %}
+      {% if file_path.startswith('/') %}{% set file_path = file_path[1:] %}{% endif %}
+      <tr data-name="{{ file.name | lower }}" data-size="{{ file.size }}" data-mtime="{{ file.mtime }}" data-ext="{{ file.ext }}">
+        <td>
+          {% if file.is_dir %}
+            <a href="{{ url_for('index', req_path=file_path, search=search) }}" class="file-link" title="Open folder">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M10 4H4a2 2 0 0 0-2 2v2h20V6a2 2 0 0 0-2-2h-8zM2 10v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8H2z"/></svg>
+              {{ file.name }}
+            </a>
+            &nbsp;<a href="{{ url_for('download_folder', req_path=file_path) }}" title="Download folder as ZIP" style="font-size:12px; color:#0063B1; text-decoration:none;">[Download ZIP]</a>
+          {% else %}
+            {% if file.mime_type and file.mime_type.startswith('image/') %}
+              <a href="#" class="file-link preview-file" data-type="image" data-path="{{ url_for('index', req_path=file_path) }}">
+                <img src="{{ url_for('index', req_path=file_path) }}" alt="{{ file.name }}" class="thumb" loading="lazy" />
+                {{ file.name }}
+              </a>
+            {% elif file.mime_type and (file.mime_type.startswith('video/') or file.ext == '.mp4') %}
+              <a href="#" class="file-link preview-file" data-type="video" data-path="{{ url_for('index', req_path=file_path) }}">
+                <svg class="icon file" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                {{ file.name }}
+              </a>
+            {% elif file.ext == '.pdf' %}
+              <a href="#" class="file-link preview-file" data-type="pdf" data-path="{{ url_for('index', req_path=file_path) }}">
+                <svg class="icon file" viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/></svg>
+                {{ file.name }}
+              </a>
+            {% else %}
+              <a href="{{ url_for('index', req_path=file_path) }}" class="file-link" title="Download file">
+                <svg class="icon file" viewBox="0 0 24 24"><path d="M6 2h12v20H6z"/></svg>
+                {{ file.name }}
+              </a>
+            {% endif %}
+          {% endif %}
+        </td>
+        <td>{{ file.mtime | datetimeformat }}</td>
+        <td>{{ 'File Folder' if file.is_dir else (file.ext[1:] | upper if file.ext else 'File') }}</td>
+        <td>{{ file.size|human_size if not file.is_dir else '-' }}</td>
+        <td class="actions">
+          <form action="{{ url_for('rename', req_path=file_path) }}" method="post" class="rename-form" title="Rename">
+            <input type="text" name="newname" class="rename-input" placeholder="Rename" required minlength="1" />
+            <button type="submit" class="rename-btn">&#9998;</button>
+          </form>
+          <form action="{{ url_for('delete', req_path=file_path) }}" method="post" class="delete-form" onsubmit="return confirm('Delete {{ file.name }}?');" title="Delete">
+            <button type="submit" class="delete-btn">&#128465;</button>
+          </form>
+        </td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    {% if pages > 1 %}
+      {% if page > 1 %}
+        <a href="{{ url_for('index', req_path=current_path, page=page-1, search=search) }}">
+          <button>&lt; Prev</button>
+        </a>
+      {% endif %}
+      <span>Page {{ page }} of {{ pages }}</span>
+      {% if page < pages %}
+        <a href="{{ url_for('index', req_path=current_path, page=page+1, search=search) }}">
+          <button>Next &gt;</button>
+        </a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <form id="uploadForm" class="upload-area" 
+      action="{{ url_for('upload', req_path=current_path or '') }}" 
+      method="post" enctype="multipart/form-data" 
+      title="Click or drag files to upload">
+    <p>Drag and drop files here, or click to select</p>
+    <input type="file" id="fileInput" name="file" multiple />
+    <progress id="uploadProgress" value="0" max="100" style="width: 100%; display: none; margin-top: 10px;"></progress>
+  </form>
+
+  <form class="folder-form" action="{{ url_for('mkdir', req_path=current_path) }}" method="post">
+    <input type="text" name="foldername" placeholder="New folder name" required />
+    <button type="submit">Create Folder</button>
+  </form>
+</div>
+
+<div id="previewModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;">
+  <div id="previewModalContent" style="max-width:90%;max-height:90%;background:#fff;padding:10px;border-radius:5px;position:relative;">
+    <span id="previewModalClose" title="Close" style="position:absolute;top:8px;right:12px;font-size:28px;cursor:pointer;color:#444;">×</span>
+    <div id="previewBody"></div>
+  </div>
+</div>
+
+<script>
+  // Sorting
+  const table = document.getElementById('fileTable');
+  const headers = table.querySelectorAll('th[data-sort]');
+  let sortDirection = {};
+  headers.forEach(th => {
+    sortDirection[th.dataset.sort] = 1;
+    th.addEventListener('click', () => {
+      sortTableByColumn(th.dataset.sort);
+      updateSortIndicators(th);
+    });
+  });
+
+  function sortTableByColumn(column) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const dir = sortDirection[column];
+    rows.sort((a, b) => {
+      let aVal = a.dataset[column];
+      let bVal = b.dataset[column];
+      if (column === 'name' || column === 'ext') {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+        return aVal.localeCompare(bVal) * dir;
+      } else if (column === 'mtime' || column === 'size') {
+        return (parseFloat(aVal) - parseFloat(bVal)) * dir;
+      }
+      return 0;
+    });
+    rows.forEach(row => tbody.appendChild(row));
+    sortDirection[column] = -dir;
+  }
+
+  function updateSortIndicators(activeTh) {
+    headers.forEach(th => {
+      th.classList.remove('sort-asc', 'sort-desc');
+    });
+    if (sortDirection[activeTh.dataset.sort] === -1) {
+      activeTh.classList.add('sort-desc');
+    } else {
+      activeTh.classList.add('sort-asc');
+    }
+  }
+
+  // Upload drag & drop UI & AJAX upload
+  const uploadArea = document.querySelector('.upload-area');
+  const fileInput = document.getElementById('fileInput');
+  const uploadForm = document.getElementById('uploadForm');
+  const progressBar = document.getElementById('uploadProgress');
+
+  uploadArea.addEventListener('click', () => fileInput.click());
+
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    fileInput.files = e.dataTransfer.files;
+    ajaxUpload();
+  });
+
+  fileInput.addEventListener('change', ajaxUpload);
+
+  function ajaxUpload() {
+    if (fileInput.files.length === 0) return;
+    const formData = new FormData();
+    for(let f of fileInput.files){
+      formData.append('file', f);
+    }
+    progressBar.style.display = 'block';
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', uploadForm.action);
+    xhr.upload.addEventListener('progress', e => {
+      if(e.lengthComputable){
+        const percent = (e.loaded / e.total) * 100;
+        progressBar.value = percent;
+      }
+    });
+    xhr.onload = function() {
+      if(xhr.status >= 200 && xhr.status < 300){
+        location.reload();
+      } else {
+        alert('Upload failed');
+        progressBar.style.display = 'none';
+      }
+    };
+    xhr.onerror = function() {
+      alert('Upload failed due to network error');
+      progressBar.style.display = 'none';
+    }
+    xhr.send(formData);
+  }
+
+  // Preview modal
+  const previewModal = document.getElementById('previewModal');
+  const previewBody = document.getElementById('previewBody');
+  const previewClose = document.getElementById('previewModalClose');
+
+  previewClose.onclick = () => {
+    previewModal.style.display = 'none';
+    previewBody.innerHTML = '';
+  };
+
+  window.onclick = (event) => {
+    if (event.target === previewModal) {
+      previewModal.style.display = 'none';
+      previewBody.innerHTML = '';
+    }
+  };
+
+  document.querySelectorAll('.preview-file').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const type = link.dataset.type;
+      const path = link.dataset.path;
+
+      if(type === 'image'){
+        previewBody.innerHTML = `<img src="${path}" style="max-width:100%; max-height:80vh; border-radius:4px;">`;
+      } else if(type === 'video'){
+        previewBody.innerHTML = `<video controls autoplay style="max-width:100%; max-height:80vh; border-radius:4px;">
+          <source src="${path}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>`;
+      } else if(type === 'pdf'){
+        previewBody.innerHTML = `<embed src="${path}" type="application/pdf" width="100%" height="600px" />`;
+      } else {
+        previewBody.innerHTML = `<p>Preview not available.</p>`;
+      }
+      previewModal.style.display = 'flex';
+    });
+  });
+</script>
+</body>
+</html>
