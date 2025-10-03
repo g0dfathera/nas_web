@@ -88,6 +88,3 @@ Login with the configured username and password to start managing files.
 ## License
 
 This project is released under the MIT License.
-
-```
-
