@@ -1,4 +1,3 @@
-````markdown
 # Flask NAS File Manager
 
 A simple web-based file manager built with **Flask** for browsing, uploading, downloading, and managing files on a NAS or any mounted directory. This project provides a secure interface to handle files, folders, and basic file operations with authentication.  
