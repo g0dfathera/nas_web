@@ -19,8 +19,8 @@ app = Flask(__name__)
 app.secret_key = 'CHANGE_THIS_SECRET_KEY'
 
 # Credentials (change these!)
-AUTH_USERNAME = 'Username' # Change this!
-AUTH_PASSWORD = 'password' # Change this too! :D
+AUTH_USERNAME = 'Username' 
+AUTH_PASSWORD = 'password'
 
 def secure_path(subpath):
     full_path = os.path.abspath(os.path.join(BASE_DIR, subpath))
