@@ -22,7 +22,7 @@ A simple web-based file manager built with **Flask** for browsing, uploading, do
 Install dependencies using pip:
 
 ```
-pip install Flask Werkzeug
+pip install -r requirements.txt
 ````
 
 ## Configuration
